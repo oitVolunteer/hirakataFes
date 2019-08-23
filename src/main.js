@@ -5,8 +5,8 @@ phina.globalize();
 var ASSETS = {
   //画像
   image: {
-    bg: 'img/bg.png',
-    bg2: 'img/bg.png',
+    bg: '../img/bg.png',
+    bg2: '../img/bg.png',
     egg: 'img/egg.png',
     tomapiko: 'https://rawgit.com/phi-jp/phina.js/develop/assets/images/tomapiko_ss.png'
   },
@@ -19,12 +19,12 @@ var ASSETS = {
 const imageScaleFactor = 0.2;
 const outputStride = 16;
 const flipHorizontal = false;
-const stats = new Stats();
+var stats = new Stats();
 const fontLayout = "bold 50px Arial";
 
 // 定数
-var SCREEN_WIDTH = 465;  // スクリーン幅
-var SCREEN_HEIGHT = 465;  // スクリーン高さ
+const SCREEN_WIDTH = 602;  // スクリーン幅
+const SCREEN_HEIGHT = 452;  // スクリーン高さ
 var JUMP_POWOR = 10; // ジャンプ力
 var GRAVITY = 0.5; // 重力
 var JUMP_FLG = false; // ジャンプ中かどうか
@@ -33,11 +33,20 @@ var EGG_DIE = false; //卵が割れてるかどうか
 var HIT_RADIUS     = 16;  // 当たり判定用の半径
 var SCORE = 0; // スコア
 var timeLimit = 600;
+var JUMPED = false; // 手が振り下げられたか
+var JUMP_READY = new Object(); // 手が上がったか
+JUMP_READY.left = false;
+JUMP_READY.right = false;
+var LEFT_WRIST;
+var LEFT_SHOUL;
+var RIGHT_WRIST;
+var RIGHT_SHOUL;
+var net;
 bindPage();
 
 async function bindPage() {
      // posenetの呼び出し
-    const net = await posenet.load();
+    net = await posenet.load();
     let video;
     try {
          // video属性をロード
@@ -88,7 +97,7 @@ function detectPoseInRealTime(video, net) {
   async function poseDetectionFrame() {
       stats.begin();
       let poses = [];
-      const pose = await net.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
+      let pose = await net.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
       poses.push(pose);
 
       ctx.clearRect(0, 0, SCREEN_WIDTH,SCREEN_HEIGHT);
@@ -114,18 +123,23 @@ if (timeLimit == 0) {
     ctx.fill();
 } else {
         poses.forEach(({ s, keypoints }) => {
-  drawNaviko(keypoints[0],keypoints[1],ctx);
+  //drawNaviko(keypoints[0],keypoints[1],ctx);
   // keypoints[9]には左手、keypoints[10]には右手の予測結果が格納されている 
   //if you want to know detail about  keipoints nubmer pleasesee https://github.com/tensorflow/tfjs-models/tree/master/posenet 
   drawWristPoint(keypoints[9],ctx);
   drawWristPoint(keypoints[10],ctx);
-  ballsDecision(ctx,[keypoints[9],keypoints[10]]);
-          });
+//  ballsDecision(ctx,[keypoints[9],keypoints[10]]);
+	    LEFT_WRIST = keypoints[9].position.y;
+	    LEFT_SHOUL = keypoints[5].position.y;
+	    RIGHT_WRIST = keypoints[10].position.y;
+	    RIGHT_SHOUL = keypoints[6].position.y;
+//	    console.log("hoge");
+  });  
 }
 
 ctx.font = fontLayout;
 ctx.fillStyle = "red";
-ctx.fillText(score, 70, 70);
+ctx.fillText(SCORE, 70, 70);
 ctx.fill();
 timeLimit -= 1;
 if(timeLimit <= 0){
@@ -134,7 +148,7 @@ if(timeLimit <= 0){
 
       stats.end();
 
-      requestAnimationFrame(poseDetectionFrame);
+//      requestAnimationFrame(poseDetectionFrame);
   }
   poseDetectionFrame();
 }
@@ -154,7 +168,7 @@ phina.define("MainScene", {
   superClass: 'DisplayScene',
  
   // 初期化
-  init: function(options) {
+    init: function(options) {
     // super init
     this.superInit(options);
  
@@ -189,21 +203,20 @@ phina.define("MainScene", {
     this.player = player;
  
     // 画面タッチ時処理
-    // this.onpointend = function() {
-      if(){
-      if(JUMP_FLG == false) {
-        JUMP_FLG = true;
-        player.anim.gotoAndPlay('fly');
-        player.scaleX *= -1;
-        player.physical.velocity.y = -JUMP_POWOR;
-        player.physical.gravity.y = GRAVITY;
-      }
-    }
+	//    this.onpointend = function() {
+	console.log(JUMPED);
+	if(JUMPED) {
+	    console.log("jump");
+            player.anim.gotoAndPlay('fly');
+            player.scaleX *= -1;
+            player.physical.velocity.y = -JUMP_POWOR;
+            player.physical.gravity.y = GRAVITY;
+	}
   },
  
   // 更新
   update: function(app) {
- 
+      
     //背景画像の移動
     this.bg.x -= 1;
     this.bg2.x -= 1;
@@ -243,9 +256,10 @@ phina.define("MainScene", {
     }
     egg.x -= EGG_ATACK;
     // 卵とプレイヤーの辺り判定
-    this.hitTestEnemyPlayer();
+//    this.hitTestEnemyPlayer();
   },
   hitTestEnemyPlayer: function() {
+      
     var player = this.player;
     var egg = this.egg;
  
@@ -258,7 +272,7 @@ phina.define("MainScene", {
       egg.frameIndex = 1;
       egg.scaleY = egg.scaleX = 1.1;
       player.x = egg.x-30;
-//      player.anim.gotoAndPlay('damage');
+      player.anim.gotoAndPlay('damage');
     }
   }
 });
@@ -278,7 +292,42 @@ phina.define('Player', {
     this.anim.gotoAndPlay('right');
   },
   // 毎フレーム処理
-  update: function() {
+    update: function() {
+	if(timeLimit < 0){
+	    // 終了
+	    
+	}else{
+	    detectPoseInRealTime(video,net);
+	    if(LEFT_WRIST < LEFT_SHOUL){
+		JUMP_READY.left = true;
+//		console.log("rising left");
+	    }
+	    if(RIGHT_WRIST < RIGHT_SHOUL){
+		JUMP_READY.right = true;
+//		console.log("rising right");
+	    }
+	    if(JUMP_READY.left && LEFT_WRIST > LEFT_SHOUL){
+		if(JUMP_FLG == false) {
+		    JUMP_FLG = true;
+		    JUMPED = true;
+		}
+		JUMP_READY.left = false;
+		JUMP_READY.right = false;
+	    }
+	    if(JUMP_READY.right && RIGHT_WRIST > RIGHT_SHOUL){
+		if(JUMP_FLG == false){
+		    JUMP_FLG = true;
+		    JUMPED = true;
+		}
+		JUMP_READY.left = false;
+		JUMP_READY.right = false;
+	    }
+	    // 残り時間の処理
+	    timeLimit -= 1;
+	    if(timeLimit % 10 == 0){
+		//console.log(timeLimit/10);
+	    }
+	}
   },
 });
  
