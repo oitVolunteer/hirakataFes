@@ -206,11 +206,11 @@ phina.define("MainScene", {
 	//    this.onpointend = function() {
 	console.log(JUMPED);
 	if(JUMPED) {
-	    console.log("jump");
             player.anim.gotoAndPlay('fly');
             player.scaleX *= -1;
             player.physical.velocity.y = -JUMP_POWOR;
             player.physical.gravity.y = GRAVITY;
+	    JUMPED = false;
 	}
   },
  
@@ -256,7 +256,53 @@ phina.define("MainScene", {
     }
     egg.x -= EGG_ATACK;
     // 卵とプレイヤーの辺り判定
-//    this.hitTestEnemyPlayer();
+      //    this.hitTestEnemyPlayer();
+
+      if(timeLimit < 0){
+	  // 終了
+	  
+      }else{
+	  detectPoseInRealTime(video,net);
+	  if(LEFT_WRIST < LEFT_SHOUL){
+	      JUMP_READY.left = true;
+	      //console.log("rising left");
+	  }
+	  if(RIGHT_WRIST < RIGHT_SHOUL){
+	      JUMP_READY.right = true;
+	      //console.log("rising right");
+	  }
+	  if(JUMP_READY.left && LEFT_WRIST > LEFT_SHOUL){
+	      if(JUMP_FLG == false) {
+		  JUMP_FLG = true;
+		  JUMPED = true;
+	      }
+	      JUMP_READY.left = false;
+	      JUMP_READY.right = false;
+	  }
+	  if(JUMP_READY.right && RIGHT_WRIST > RIGHT_SHOUL){
+	      if(JUMP_FLG == false){
+		  JUMP_FLG = true;
+		  JUMPED = true;
+	      }
+	      JUMP_READY.left = false;
+	      JUMP_READY.right = false;
+	  }
+	  console.log(JUMPED);
+	  if(JUMPED) {
+	      console.log("jump");
+              player.anim.gotoAndPlay('fly');
+              player.scaleX *= -1;
+              player.physical.velocity.y = -JUMP_POWOR;
+              player.physical.gravity.y = GRAVITY;
+	      JUMPED = false;
+	  }
+	  // 残り時間の処理
+	  timeLimit -= 1;
+	  if(timeLimit % 10 == 0){
+	      //console.log(timeLimit/10);
+	  }
+      }
+      
   },
   hitTestEnemyPlayer: function() {
       
@@ -328,7 +374,7 @@ phina.define('Player', {
 		//console.log(timeLimit/10);
 	    }
 	}
-  },
+    }
 });
  
 /*
