@@ -8,7 +8,8 @@ var ASSETS = {
     bg: '../img/bg.png',
     bg2: '../img/bg.png',
     egg: 'img/egg.png',
-    tomapiko: 'https://rawgit.com/phi-jp/phina.js/develop/assets/images/tomapiko_ss.png'
+    tomapiko: '../img/tomapiko_ss.png'//'https://rawgit.com/phi-jp/phina.js/develop/assets/images/tomapiko_ss.png'
+    
   },
   //フレームアニメーション情報
   spritesheet: {
@@ -32,6 +33,7 @@ var EGG_ATACK = 5; //卵の移動速度
 var EGG_DIE = false; //卵が割れてるかどうか
 var HIT_RADIUS     = 16;  // 当たり判定用の半径
 var SCORE = 0; // スコア
+var SCORE_ADD = 100;
 var timeLimit = 600;
 var JUMPED = false; // 手が振り下げられたか
 var JUMP_READY = new Object(); // 手が上がったか
@@ -121,6 +123,7 @@ if (timeLimit == 0) {
     ctx.fillStyle = "red";
     ctx.fillText("TIME UP", 300, 300);
     ctx.fill();
+    stats.end();
 } else {
         poses.forEach(({ s, keypoints }) => {
   //drawNaviko(keypoints[0],keypoints[1],ctx);
@@ -145,9 +148,7 @@ timeLimit -= 1;
 if(timeLimit <= 0){
     timeLimit = 0;
 }
-
-      stats.end();
-
+      //stats.end();
 //      requestAnimationFrame(poseDetectionFrame);
   }
   poseDetectionFrame();
@@ -204,7 +205,7 @@ phina.define("MainScene", {
  
     // 画面タッチ時処理
 	//    this.onpointend = function() {
-	console.log(JUMPED);
+//	console.log(JUMPED);
 	if(JUMPED) {
             player.anim.gotoAndPlay('fly');
             player.scaleX *= -1;
@@ -240,15 +241,15 @@ phina.define("MainScene", {
     var egg = this.egg;
     if(EGG_DIE == false){
       egg.rotation -= EGG_ATACK;
-      if(egg.x < 0){
+	if(this.hitTestEnemyPlayer()){
         egg.x = SCREEN_WIDTH+100;
         SCORE += 100;
-        EGG_ATACK += 2;
+//        EGG_ATACK += 2;
         this.scoreLabel.text = 'SCORE:'+SCORE;
       }
     } else {
-      egg.rotation = 0;
-      if(egg.x < 0){
+//      egg.rotation = 0;
+	if(egg.x < 0){
         this.exit({
           score: SCORE,
         });
@@ -256,10 +257,14 @@ phina.define("MainScene", {
     }
     egg.x -= EGG_ATACK;
     // 卵とプレイヤーの辺り判定
-      //    this.hitTestEnemyPlayer();
+    this.hitTestEnemyPlayer();
 
+      // timelimit の判定
       if(timeLimit < 0){
 	  // 終了
+	  console.log("time up! 1");
+	  timeLimit = 0;
+	  EGG_DIE = true;
 	  
       }else{
 	  detectPoseInRealTime(video,net);
@@ -287,7 +292,7 @@ phina.define("MainScene", {
 	      JUMP_READY.left = false;
 	      JUMP_READY.right = false;
 	  }
-	  console.log(JUMPED);
+//	  console.log(JUMPED);
 	  if(JUMPED) {
 	      console.log("jump");
               player.anim.gotoAndPlay('fly');
@@ -298,8 +303,11 @@ phina.define("MainScene", {
 	  }
 	  // 残り時間の処理
 	  timeLimit -= 1;
-	  if(timeLimit % 10 == 0){
-	      //console.log(timeLimit/10);
+	  if(timeLimit == 0){
+	      console.info('time up! 2');
+	      this.exit({
+		  score: SCORE,
+	      });
 	  }
       }
       
@@ -313,12 +321,13 @@ phina.define("MainScene", {
     var c1 = Circle(player.x, player.y, HIT_RADIUS);
     var c2 = Circle(egg.x, egg.y, HIT_RADIUS);
     // 円判定
-    if (Collision.testCircleCircle(c1, c2)) {
-      EGG_DIE = true;
+      if (Collision.testCircleCircle(c1, c2)) {
+	  SCORE += SCORE_ADD;
+//      EGG_DIE = true;
       egg.frameIndex = 1;
-      egg.scaleY = egg.scaleX = 1.1;
-      player.x = egg.x-30;
-      player.anim.gotoAndPlay('damage');
+	  egg.scaleY = egg.scaleX = 1.1;
+//      player.x = egg.x-30;
+//      player.anim.gotoAndPlay('damage');
     }
   }
 });
@@ -341,7 +350,12 @@ phina.define('Player', {
     update: function() {
 	if(timeLimit < 0){
 	    // 終了
-	    
+	    console.log("time up! 3");
+	    timeLimit = 0;
+	    EGG_DIE = true;
+	    /*this.exit({
+		score: SCORE,
+	    });*/
 	}else{
 	    detectPoseInRealTime(video,net);
 	    if(LEFT_WRIST < LEFT_SHOUL){
@@ -370,8 +384,9 @@ phina.define('Player', {
 	    }
 	    // 残り時間の処理
 	    timeLimit -= 1;
-	    if(timeLimit % 10 == 0){
-		//console.log(timeLimit/10);
+	    
+	    if (timeLimit % 10 == 0) {
+		printLimit = timeLimit / 10;
 	    }
 	}
     }
