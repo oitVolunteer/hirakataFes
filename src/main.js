@@ -7,7 +7,7 @@ var ASSETS = {
   image: {
     bg: '../img/bg.png',
     bg2: '../img/bg.png',
-    egg: 'img/egg.png',
+    egg: '../img/egg.png',
     tomapiko: '../img/tomapiko_ss.png'//'https://rawgit.com/phi-jp/phina.js/develop/assets/images/tomapiko_ss.png'
     
   },
