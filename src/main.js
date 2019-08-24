@@ -24,19 +24,21 @@ var stats = new Stats();
 const fontLayout = "bold 50px Arial";
 
 // 定数
-const SCREEN_WIDTH = 602;  // スクリーン幅
+const SCREEN_WIDTH = 620;  // スクリーン幅
 const SCREEN_HEIGHT = 452;  // スクリーン高さ
 const eggY = [310,260,210];
 var JUMP_POWOR = 10; // ジャンプ力
 var GRAVITY = 0.5; // 重力
 var JUMP_FLG = false; // ジャンプ中かどうか
 var EGG_ATACK = 6; //卵の移動速度
+var EGG_ATACK2 = 6;
 var EGG_DIE = false; //卵が割れてるかどうか
 var HIT_RADIUS     = 16;  // 当たり判定用の半径
 var SCORE = 0; // スコア
-var SCORE_ADD = 100;
-var ADD_FLG = false;
-var timeLimit = 1800;
+var SCORE_ADD = 100; // 得点
+var ADD_FLG = false; // 加点フラグ 接触時の加点を1回にするため
+var ADD_FLG2 = false;
+var timeLimit = 1800;// 制限時間 約1分
 var JUMPED = false; // 手が振り下げられたか
 var JUMP_READY = new Object(); // 手が上がったか
 JUMP_READY.left = false;
@@ -177,7 +179,8 @@ phina.define("MainScene", {
  
     //1回目の初期化
     SCORE = 0;
-    EGG_ATACK = 6;
+	EGG_ATACK = 5;
+	EGG_ATACK = 7;
     EGG_DIE = false;
     JUMP_FLG = false;
  
@@ -199,9 +202,16 @@ phina.define("MainScene", {
     this.egg = Sprite('egg', 48, 48).addChildTo(this);
 	var ran = Math.random()*3+1;
 	ran = parseInt(ran);
-	this.egg.setPosition(SCREEN_WIDTH, eggY[--ran]);
+	this.egg.setPosition(SCREEN_WIDTH + 150, eggY[--ran]);
 	console.log(ran);
-    this.egg.frameIndex = 0;
+	this.egg.frameIndex = 0;
+
+	this.egg2 = Sprite('egg', 48, 48).addChildTo(this);
+	var ran = Math.random()*3+1;
+	ran = parseInt(ran);
+	this.egg2.setPosition(SCREEN_WIDTH + 150, eggY[--ran]);
+	console.log(ran);
+	this.egg2.frameIndex = 0;
  
     // プレイヤー
     var player = Player('tomapiko').addChildTo(this);
@@ -243,21 +253,21 @@ phina.define("MainScene", {
     }
  
     //卵のアニメ
-    var egg = this.egg;
+      var egg = this.egg;
     if(EGG_DIE == false){
 	egg.rotation -= EGG_ATACK;
 	if(egg.x < 0){
 	    var ran = Math.random()*3;
 	    ran = parseInt(ran+1);
 	    egg.y = eggY[ran - 1];
-	    console.log(egg.y);
+	    console.log('egg.y =', egg.y);
 	    egg.x = SCREEN_WIDTH+100;
-	    EGG_ATACK += 2.5;
+	    EGG_ATACK += 2;
 //	    EGG_ATACK = Math.random()*6 + 7;
-	    console.log(EGG_ATACK);
+	    console.log('EGG_ATACK =', EGG_ATACK);
 	}
 	if(this.hitTestEnemyPlayer()){
-//        egg.x = SCREEN_WIDTH+100;
+            egg.x = SCREEN_WIDTH+100;
             SCORE += 100;
             this.scoreLabel.text = 'SCORE:'+SCORE;
 	}
@@ -270,6 +280,36 @@ phina.define("MainScene", {
       }
     }
     egg.x -= EGG_ATACK;
+    // 卵とプレイヤーの辺り判定
+      this.hitTestEnemyPlayer();
+
+      var egg2 = this.egg2;
+    if(EGG_DIE == false){
+	egg2.rotation -= EGG_ATACK2;
+	if(egg2.x < 0){
+	    var ran = Math.random()*3;
+	    ran = parseInt(ran+1);
+	    egg2.y = eggY[ran - 1];
+	    console.log('egg2 =',egg2.y);
+	    egg2.x = SCREEN_WIDTH+100;
+//	    EGG_ATACK += 2.5;
+	    EGG_ATACK2 = Math.random()*10 + 5;
+	    console.log('EGG_ATACK2 =', EGG_ATACK2);
+	}
+	if(this.hitTestEnemyPlayer()){
+            egg2.x = SCREEN_WIDTH+100;
+            SCORE += 100;
+            this.scoreLabel.text = 'SCORE:'+SCORE;
+	}
+    } else {
+      egg2.rotation = 0;
+	if(egg2.x < 0){
+        this.exit({
+          score: SCORE,
+        });
+      }
+    }
+    egg2.x -= EGG_ATACK2;
     // 卵とプレイヤーの辺り判定
     this.hitTestEnemyPlayer();
 
@@ -329,11 +369,13 @@ phina.define("MainScene", {
   hitTestEnemyPlayer: function() {
       
     var player = this.player;
-    var egg = this.egg;
+      var egg = this.egg;
+      var egg2 = this.egg2;
  
     // 判定用の円
-    var c1 = Circle(player.x, player.y, HIT_RADIUS);
-    var c2 = Circle(egg.x, egg.y, HIT_RADIUS);
+      var c1 = Circle(player.x, player.y, HIT_RADIUS);
+      var c2 = Circle(egg.x, egg.y, HIT_RADIUS);
+      var c3 = Circle(egg2.x, egg2.y, HIT_RADIUS);
     // 円判定
       if (Collision.testCircleCircle(c1, c2)) {
 	  ADD_FLG = true;
@@ -347,6 +389,21 @@ phina.define("MainScene", {
       else if(ADD_FLG){
 	  SCORE += SCORE_ADD;
 	  ADD_FLG = false;
+      }
+
+      // egg2 の円判定
+      if (Collision.testCircleCircle(c1, c3)) {
+	  ADD_FLG2 = true;
+//	  SCORE += SCORE_ADD;
+//      EGG_DIE = true;
+	  egg2.frameIndex = 1;
+	  egg2.scaleY = egg2.scaleX = 1.1;
+//      player.x = egg.x-30;
+//      player.anim.gotoAndPlay('damage');
+      }
+      else if(ADD_FLG2){
+	  SCORE += SCORE_ADD;
+	  ADD_FLG2 = false;
       }
   }
 });
