@@ -7,7 +7,7 @@ var ASSETS = {
   image: {
     bg: '../img/bg.png',
     bg2: '../img/bg.png',
-    egg: '../img/egg.png',
+    egg: 'img/egg.png',
     tomapiko: '../img/tomapiko_ss.png'//'https://rawgit.com/phi-jp/phina.js/develop/assets/images/tomapiko_ss.png'
     
   },
@@ -26,15 +26,17 @@ const fontLayout = "bold 50px Arial";
 // 定数
 const SCREEN_WIDTH = 602;  // スクリーン幅
 const SCREEN_HEIGHT = 452;  // スクリーン高さ
+const eggY = [310,260,210];
 var JUMP_POWOR = 10; // ジャンプ力
 var GRAVITY = 0.5; // 重力
 var JUMP_FLG = false; // ジャンプ中かどうか
-var EGG_ATACK = 5; //卵の移動速度
+var EGG_ATACK = 6; //卵の移動速度
 var EGG_DIE = false; //卵が割れてるかどうか
 var HIT_RADIUS     = 16;  // 当たり判定用の半径
 var SCORE = 0; // スコア
 var SCORE_ADD = 100;
-var timeLimit = 600;
+var ADD_FLG = false;
+var timeLimit = 1800;
 var JUMPED = false; // 手が振り下げられたか
 var JUMP_READY = new Object(); // 手が上がったか
 JUMP_READY.left = false;
@@ -195,7 +197,10 @@ phina.define("MainScene", {
  
     // 障害物（卵）
     this.egg = Sprite('egg', 48, 48).addChildTo(this);
-    this.egg.setPosition(SCREEN_WIDTH, 310);
+	var ran = Math.random()*10+1;
+	ran = parseInt(ran/3 +1);
+	this.egg.setPosition(SCREEN_WIDTH, eggY[--ran]);
+	console.log(ran);
     this.egg.frameIndex = 0;
  
     // プレイヤー
@@ -248,7 +253,7 @@ phina.define("MainScene", {
         this.scoreLabel.text = 'SCORE:'+SCORE;
       }
     } else {
-//      egg.rotation = 0;
+      egg.rotation = 0;
 	if(egg.x < 0){
         this.exit({
           score: SCORE,
@@ -268,15 +273,15 @@ phina.define("MainScene", {
 	  
       }else{
 	  detectPoseInRealTime(video,net);
-	  if(LEFT_WRIST < LEFT_SHOUL){
+	  if(LEFT_WRIST*1.2 < LEFT_SHOUL){
 	      JUMP_READY.left = true;
 	      //console.log("rising left");
 	  }
-	  if(RIGHT_WRIST < RIGHT_SHOUL){
+	  if(RIGHT_WRIST*1.2 < RIGHT_SHOUL){
 	      JUMP_READY.right = true;
 	      //console.log("rising right");
 	  }
-	  if(JUMP_READY.left && LEFT_WRIST > LEFT_SHOUL){
+	  if(JUMP_READY.left && LEFT_WRIST > LEFT_SHOUL*1.2){
 	      if(JUMP_FLG == false) {
 		  JUMP_FLG = true;
 		  JUMPED = true;
@@ -284,7 +289,7 @@ phina.define("MainScene", {
 	      JUMP_READY.left = false;
 	      JUMP_READY.right = false;
 	  }
-	  if(JUMP_READY.right && RIGHT_WRIST > RIGHT_SHOUL){
+	  if(JUMP_READY.right && RIGHT_WRIST > RIGHT_SHOUL*1.2){
 	      if(JUMP_FLG == false){
 		  JUMP_FLG = true;
 		  JUMPED = true;
@@ -322,13 +327,18 @@ phina.define("MainScene", {
     var c2 = Circle(egg.x, egg.y, HIT_RADIUS);
     // 円判定
       if (Collision.testCircleCircle(c1, c2)) {
-	  SCORE += SCORE_ADD;
+	  ADD_FLG = true;
+//	  SCORE += SCORE_ADD;
 //      EGG_DIE = true;
       egg.frameIndex = 1;
 	  egg.scaleY = egg.scaleX = 1.1;
 //      player.x = egg.x-30;
 //      player.anim.gotoAndPlay('damage');
-    }
+      }
+      else if(ADD_FLG){
+	  SCORE += SCORE_ADD;
+	  ADD_FLG = false;
+      }
   }
 });
  
