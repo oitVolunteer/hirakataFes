@@ -177,7 +177,7 @@ phina.define("MainScene", {
  
     //1回目の初期化
     SCORE = 0;
-    EGG_ATACK = 5;
+    EGG_ATACK = 6;
     EGG_DIE = false;
     JUMP_FLG = false;
  
@@ -197,8 +197,8 @@ phina.define("MainScene", {
  
     // 障害物（卵）
     this.egg = Sprite('egg', 48, 48).addChildTo(this);
-	var ran = Math.random()*10+1;
-	ran = parseInt(ran/3 +1);
+	var ran = Math.random()*3+1;
+	ran = parseInt(ran);
 	this.egg.setPosition(SCREEN_WIDTH, eggY[--ran]);
 	console.log(ran);
     this.egg.frameIndex = 0;
@@ -245,13 +245,22 @@ phina.define("MainScene", {
     //卵のアニメ
     var egg = this.egg;
     if(EGG_DIE == false){
-      egg.rotation -= EGG_ATACK;
+	egg.rotation -= EGG_ATACK;
+	if(egg.x < 0){
+	    var ran = Math.random()*3;
+	    ran = parseInt(ran+1);
+	    egg.y = eggY[ran - 1];
+	    console.log(egg.y);
+	    egg.x = SCREEN_WIDTH+100;
+	    EGG_ATACK += 2.5;
+//	    EGG_ATACK = Math.random()*6 + 7;
+	    console.log(EGG_ATACK);
+	}
 	if(this.hitTestEnemyPlayer()){
-        egg.x = SCREEN_WIDTH+100;
-        SCORE += 100;
-//        EGG_ATACK += 2;
-        this.scoreLabel.text = 'SCORE:'+SCORE;
-      }
+//        egg.x = SCREEN_WIDTH+100;
+            SCORE += 100;
+            this.scoreLabel.text = 'SCORE:'+SCORE;
+	}
     } else {
       egg.rotation = 0;
 	if(egg.x < 0){
