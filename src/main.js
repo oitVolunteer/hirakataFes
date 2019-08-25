@@ -273,7 +273,7 @@ phina.define("MainScene", {
 	}
     } else {
       egg.rotation = 0;
-	if(egg.x < 0){
+	if(egg.x < 0 || ADD_FLG){
         this.exit({
           score: SCORE,
         });
