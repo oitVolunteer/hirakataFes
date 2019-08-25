@@ -193,10 +193,10 @@ phina.define("MainScene", {
     this.bg2.setPosition(SCREEN_WIDTH, 0);
  
     //スコア表示
-    this.scoreLabel = Label('SCORE:'+SCORE).addChildTo(this);
-    this.scoreLabel.x = this.gridX.center();
-    this.scoreLabel.y = this.gridY.span(4);
-    this.scoreLabel.fill = 'gray';
+//    this.scoreLabel = Label('SCORE:'+SCORE).addChildTo(this);
+//    this.scoreLabel.x = this.gridX.center();
+//    this.scoreLabel.y = this.gridY.span(4);
+//    this.scoreLabel.fill = 'gray';
  
     // 障害物（卵）
     this.egg = Sprite('egg', 48, 48).addChildTo(this);
@@ -269,7 +269,7 @@ phina.define("MainScene", {
 	if(this.hitTestEnemyPlayer()){
             egg.x = SCREEN_WIDTH+100;
             SCORE += 100;
-            this.scoreLabel.text = 'SCORE:'+SCORE;
+//            this.scoreLabel.text = 'SCORE:'+SCORE;
 	}
     } else {
       egg.rotation = 0;
@@ -299,7 +299,7 @@ phina.define("MainScene", {
 	if(this.hitTestEnemyPlayer()){
             egg2.x = SCREEN_WIDTH+100;
             SCORE += 100;
-            this.scoreLabel.text = 'SCORE:'+SCORE;
+//            this.scoreLabel.text = 'SCORE:'+SCORE;
 	}
     } else {
       egg2.rotation = 0;
