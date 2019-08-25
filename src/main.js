@@ -322,15 +322,15 @@ phina.define("MainScene", {
 	  
       }else{
 	  detectPoseInRealTime(video,net);
-	  if(LEFT_WRIST*1.2 < LEFT_SHOUL){
+	  if(LEFT_WRIST*1.3 < LEFT_SHOUL){
 	      JUMP_READY.left = true;
 	      //console.log("rising left");
 	  }
-	  if(RIGHT_WRIST*1.2 < RIGHT_SHOUL){
+	  if(RIGHT_WRIST*1.3 < RIGHT_SHOUL){
 	      JUMP_READY.right = true;
 	      //console.log("rising right");
 	  }
-	  if(JUMP_READY.left && LEFT_WRIST > LEFT_SHOUL*1.2){
+	  if(JUMP_READY.left && LEFT_WRIST > LEFT_SHOUL*1.3){
 	      if(JUMP_FLG == false) {
 		  JUMP_FLG = true;
 		  JUMPED = true;
@@ -338,7 +338,7 @@ phina.define("MainScene", {
 	      JUMP_READY.left = false;
 	      JUMP_READY.right = false;
 	  }
-	  if(JUMP_READY.right && RIGHT_WRIST > RIGHT_SHOUL*1.2){
+	  if(JUMP_READY.right && RIGHT_WRIST > RIGHT_SHOUL*1.3){
 	      if(JUMP_FLG == false){
 		  JUMP_FLG = true;
 		  JUMPED = true;
