@@ -378,6 +378,14 @@ phina.define("MainScene", {
       var c3 = Circle(egg2.x, egg2.y, HIT_RADIUS);
     // 円判定
       if (Collision.testCircleCircle(c1, c2)) {
+	  var ran = Math.random()*3;
+	  ran = parseInt(ran+1);
+	  egg.y = eggY[ran - 1];
+	  console.log('egg.y =', egg.y);
+	  egg.x = SCREEN_WIDTH+100;
+	  EGG_ATACK += 2;
+	  //EGG_ATACK = Math.random()*6 + 7;
+	  console.log('EGG_ATACK =', EGG_ATACK);
 	  ADD_FLG = true;
 //	  SCORE += SCORE_ADD;
 //      EGG_DIE = true;
@@ -393,6 +401,14 @@ phina.define("MainScene", {
 
       // egg2 の円判定
       if (Collision.testCircleCircle(c1, c3)) {
+	  var ran = Math.random()*3;
+	  ran = parseInt(ran+1);
+	  egg2.y = eggY[ran - 1];
+	  console.log('egg2 =',egg2.y);
+	  egg2.x = SCREEN_WIDTH+100;
+	  //EGG_ATACK += 2.5;
+	  EGG_ATACK2 = Math.random()*10 + 5;
+	  console.log('EGG_ATACK2 =', EGG_ATACK2);
 	  ADD_FLG2 = true;
 //	  SCORE += SCORE_ADD;
 //      EGG_DIE = true;
